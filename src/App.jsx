@@ -4,19 +4,17 @@ import VerifyOtp from "./Components/verify-otp"
 import SignIn from "./Components/signin";
 import Home from "./Components/Home";
 import ProtectedRoute from "./Components/ProtectedRoute";
+import SearchBooks from "./Components/Book/searchBook";
 
 function App(){
   return (
     <div className="App">
       <Routes>
+        <Route path="/search" element={<SearchBooks/>}/>
         <Route path="/" element={<Navigate to="/send-otp" />} />
         <Route path="/signin" element={<SignIn/>} />
         <Route path="/send-otp" element={<SendOtp/>}/>
-        <Route path="/signup" element={
-            <ProtectedRoute>
-              <VerifyOtp/>
-            </ProtectedRoute>
-          } />
+        <Route path="/signup" element={<VerifyOtp/>} />
         <Route
           path="/home"
           element={
