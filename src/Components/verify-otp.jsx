@@ -83,7 +83,7 @@ export default function VerifyOtp() {
           onClick={handleVerify}
           className="w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium"
         >
-          Complete Signup
+          Register
         </button>
 
         <ToastContainer position="top-center" theme="dark" />

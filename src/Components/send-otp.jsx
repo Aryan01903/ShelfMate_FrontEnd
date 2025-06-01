@@ -15,7 +15,7 @@ export default function SendOtp() {
 
       console.log("Response:", res.data);
       toast.success("OTP sent successfully!");
-      navigate("/signup",{state : {
+      navigate("/register",{state : {
         email,
         name :"",
         userId : "",
@@ -39,7 +39,7 @@ export default function SendOtp() {
         onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 mb-4 rouded-lg bg-white/20 rounded-3xl placeholder-gray-300 focus-outline-none focus:ring-2 focus:ring-cyan-400 h-14"/>
         <button onClick={handleSendOtp} className="w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium">Send OTP</button>
         <p className="mt-4 text-center text-sm text-gray-300">
-        Already have an account?{" "} <Link to="/signin" className="text-cyan-500 hover:underline">Login</Link>
+        Already have an account?{" "} <Link to="/login" className="text-cyan-500 hover:underline">Login</Link>
         </p>
         <ToastContainer position="top-center" theme="dark"/>
       </div>

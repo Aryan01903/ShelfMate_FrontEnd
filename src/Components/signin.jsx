@@ -52,7 +52,7 @@ export default function SignIn() {
           onClick={handleSignIn}
           className="w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium"
         >
-          Sign In
+          Login
         </button>
         <ToastContainer position="top-center" theme="dark" />
       </div>
