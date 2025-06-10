@@ -17,7 +17,7 @@ export default function Home() {
         setLoading(true);
         const token = localStorage.getItem("token");
         const res = await axios.get("/books/search", {
-          params: { query: "trending" },
+          params: { query: "fantasy" },
           headers: {
             "x-access-token": token || "",
           },
