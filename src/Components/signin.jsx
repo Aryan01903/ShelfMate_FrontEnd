@@ -39,13 +39,13 @@ export default function SignIn() {
         <h1 className="text-3xl font-semibold text-center mb-6 tracking-wide">🔐 Welcome</h1>
         <input
           placeholder="Enter Email or User ID"
-          onChange={(e) => setIdentifier(e.target.value)} // ✅ update state
+          onChange={(e) => setIdentifier(e.target.value)}
           className="w-full px-4 py-2 mb-4 bg-white/20 rounded-3xl placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-10"
         />
         <input
           type="password"
           placeholder="Enter Password"
-          onChange={(e) => setPassword(e.target.value)} // ✅ update state
+          onChange={(e) => setPassword(e.target.value)}
           className="w-full px-4 py-2 mb-4 bg-white/20 rounded-3xl placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-10"
         />
         <button
