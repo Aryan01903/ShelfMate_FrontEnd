@@ -6,9 +6,11 @@ import { ToastContainer, toast } from "react-toastify";
 export default function SignIn() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [loader, setLoader] = useState(false);
   const navigate = useNavigate();
 
   const handleSignIn = async () => {
+    setLoader(true);
     try {
       const res = await axios.post("/auth/signin", {
         identifier,
@@ -25,11 +27,13 @@ export default function SignIn() {
 
       localStorage.setItem("token", res.data.accessToken);
       toast.success("Login successful");
-      setTimeout(() => navigate("/home"), 1000);
+      navigate("/home");
+      setLoader(false);      
     } catch (err) {
       console.error("error:", err);
       console.error("error response:", err.response?.data);
       toast.error(err.response?.data?.message || "Login failed");
+      setLoader(false);
     }
   };
 
@@ -50,9 +54,10 @@ export default function SignIn() {
         />
         <button
           onClick={handleSignIn}
-          className="w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium"
+          disabled={loader} 
+          className={`w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium ${loader ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          Login
+          {loader ? "Please wait..." : "Login"}
         </button>
         <ToastContainer position="top-center" theme="dark" />
       </div>

@@ -5,9 +5,11 @@ import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 export default function SendOtp() {
   const [email, setEmail] = useState("");
+  const [loader, setLoader] = useState(false);
   
   const navigate=useNavigate();
   const handleSendOtp = async () => {
+    setLoader(true);
     try {
       const res = await axios.post("https://shelfmateapi.onrender.com/shelfmate/api/auth/send-otp", {
         email,
@@ -22,9 +24,11 @@ export default function SendOtp() {
         password : "",
         otp : ""
       }});
+      setLoader(false);
     } catch (err) {
       console.error("Send OTP error:", err.response?.data || err.message);
-      toast.error("Failed to send OTP");
+      toast.error("User present with this email!");
+      setLoader(false);
     }
   };
 
@@ -37,7 +41,13 @@ export default function SendOtp() {
         value={email}
         placeholder="enter your email"
         onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 mb-4 rouded-lg bg-white/20 rounded-3xl placeholder-gray-300 focus-outline-none focus:ring-2 focus:ring-cyan-400 h-14"/>
-        <button onClick={handleSendOtp} className="w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium">Send OTP</button>
+        <button
+          onClick={handleSendOtp}
+          disabled={loader} 
+          className={`w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium ${loader ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          {loader ? "Please wait..." : "Send OTP"}
+        </button>
         <p className="mt-4 text-center text-sm text-gray-300">
         Already have an account?{" "} <Link to="/login" className="text-cyan-500 hover:underline">Login</Link>
         </p>
