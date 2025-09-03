@@ -72,12 +72,12 @@ export default function Home() {
     <div
       className="min-h-screen bg-cover bg-center p-4"
       style={{
-        backgroundImage: "url('/assets/backgroundHome.png')",
+        backgroundImage: "url('/assets/backgroundHome.webp')",
         backgroundAttachment: "fixed",
         backgroundColor: "#f0f0f0",
       }}
     >
-      <div className="max-w-5xl mx-auto bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg">
+      <div className="max-w-5xl mx-auto bg-white/30 backdrop-blur-0 p-6 rounded-lg shadow-lg">
         <h1 className="text-4xl font-bold text-white mb-6 text-center">
           📚 Welcome to ShelfMate
         </h1>

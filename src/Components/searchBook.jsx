@@ -256,11 +256,11 @@ export default function SearchBook() {
     <div
       className="min-h-screen bg-cover bg-center p-4"
       style={{
-        backgroundImage: "url('/assets/backgroundHome.png')",
+        backgroundImage: "url('/assets/backgroundHome.webp')",
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="max-w-4xl mx-auto bg-white/30 backdrop-blur-md p-6 rounded-lg shadow-lg">
+      <div className="max-w-4xl mx-auto bg-white/30 backdrop-blur-0 p-6 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold text-white mb-4 text-center">🔍 Search Books</h1>
 
         <div className="flex items-center gap-4 mb-6">
