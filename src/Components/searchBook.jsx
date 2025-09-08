@@ -1,7 +1,7 @@
-import { useState } from "react";
-import axios from "./api/axios";
+import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axiosInstance from "./api/axios";
 
 export default function SearchBook() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -10,6 +10,29 @@ export default function SearchBook() {
   const [loading, setLoading] = useState(false);
   const [ratings, setRatings] = useState({});
   const [reviews, setReviews] = useState({});
+  const [recommendBooks, setRecommendBooks] = useState([]);
+  const [recommendLoader, setRecommendLoader] = useState(false);
+
+  useEffect(() => {
+    const fetchRecommendedBooks = async () => {
+      setRecommendLoader(true);
+      const token = localStorage.getItem("token");
+      try {
+        const res = await axiosInstance.get("/books/recommendBooks", {
+          token,
+        });
+        console.log("Recommended Books are :- ", res.data);
+        const books = res.data.recommendations || [];
+        setRecommendBooks(books);
+      } catch (err) {
+        console.log("Some Error Occurred while fetching recommended Book", err);
+        toast.error("Failed to fetch Recommended Books for You!!!");
+      } finally {
+        setRecommendLoader(false);
+      }
+    };
+    fetchRecommendedBooks();
+  }, []);
 
   const booksPerPage = 20;
 
@@ -49,24 +72,15 @@ export default function SearchBook() {
     }
 
     try {
-      const res = await axios.get("/books/rate", {
+      const res = await axiosInstance.get("/books/rate", {
         params: { work_keys: workKeys.join(",") },
         headers: { "x-access-token": token },
       });
 
-      if (!res.data.ratings) {
-        console.warn("No ratings data in response:", res.data);
-        return {};
-      }
-
-      return res.data.ratings;
+      return res.data.ratings || {};
     } catch (error) {
       console.error("Rating Fetch Error:", error);
-      if (error.response?.status === 404) {
-        toast.error("Ratings endpoint not found. Please contact support.");
-      } else {
-        toast.error("Failed to fetch ratings and reviews.");
-      }
+      toast.error("Failed to fetch ratings and reviews.");
       return {};
     }
   };
@@ -86,12 +100,13 @@ export default function SearchBook() {
         return;
       }
 
-      const res = await axios.get("/books/search", {
+      const res = await axiosInstance.get("/books/search", {
         params: { query: searchTerm },
         headers: { "x-access-token": token },
       });
 
-      const books = res.data.books || res.data.docs || res.data.results || res.data || [];
+      const books =
+        res.data.books || res.data.docs || res.data.results || res.data || [];
 
       const normalizedBooks = books.map((book) => ({
         ...book,
@@ -108,10 +123,10 @@ export default function SearchBook() {
 
       setResults(booksWithRatings);
       setCurrentPage(1);
-      setLoading(false);
     } catch (error) {
       console.error("Search Error:", error);
       toast.error("Failed to fetch books.");
+    } finally {
       setLoading(false);
     }
   };
@@ -135,7 +150,7 @@ export default function SearchBook() {
     }
 
     try {
-      const res = await axios.post(
+      const res = await axiosInstance.post(
         "/books/rate",
         { work_key: normalizedWorkKey, rating: parseFloat(rating), review },
         { headers: { "x-access-token": token } }
@@ -158,9 +173,7 @@ export default function SearchBook() {
       setReviews((prev) => ({ ...prev, [normalizedWorkKey]: "" }));
     } catch (error) {
       console.error("Rating Error:", error);
-      const errorMsg =
-        error.response?.data?.message || "Failed to rate book. Please try again.";
-      toast.error(errorMsg);
+      toast.error("Failed to rate book. Please try again.");
     }
   };
 
@@ -176,9 +189,10 @@ export default function SearchBook() {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  const renderBookCard = (book) => {
+  // Search Results Card (with rating form)
+  const renderSearchBookCard = (book, index) => {
     const workKey = normalizeWorkKey(book.work_key);
-    const key = workKey || book.key || `search-${Math.random()}`;
+    const key = workKey ? `${workKey}-${index}` : `search-${index}`;
 
     return (
       <div
@@ -186,7 +200,7 @@ export default function SearchBook() {
         className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
       >
         <img
-          src={getImageUrl(book.cover_i)}
+          src={book.coverImage || getImageUrl(book.cover_i)}
           alt={book.title || "Book cover"}
           className="w-full h-48 object-cover rounded-md mb-2"
         />
@@ -194,22 +208,28 @@ export default function SearchBook() {
           {book.title || "Untitled"}
         </h3>
         <p className="text-gray-600 text-sm">
-          Author: {book.author_name ? book.author_name.join(", ") : "Unknown"}
+          Author:{" "}
+          {book.author_name
+            ? book.author_name.join(", ")
+            : book.authors?.join(", ") || "Unknown"}
         </p>
         <p className="text-gray-700 text-xs">
           📅 Year: {book.first_publish_year || "N/A"}
         </p>
         <p className="text-yellow-600 text-sm mt-1">
-          ★ Rating: {book.averageRating ? book.averageRating.toFixed(1) : "Not rated"}
+          ★ Rating:{" "}
+          {book.averageRating ? book.averageRating.toFixed(1) : "Not rated"}
         </p>
+
+        {/* Reviews */}
         <div className="mt-2">
           <h4 className="text-sm font-semibold text-gray-800">Reviews</h4>
           {book.ratings?.length > 0 ? (
             <ul className="list-disc pl-5 text-gray-600 text-xs">
               {book.ratings
                 .filter((r) => r.review)
-                .map((r, index) => (
-                  <li key={index}>
+                .map((r, i) => (
+                  <li key={i}>
                     {r.review} (Rating: {r.rating})
                   </li>
                 ))}
@@ -218,6 +238,8 @@ export default function SearchBook() {
             <p className="text-gray-600 text-xs">No reviews yet.</p>
           )}
         </div>
+
+        {/* Rating Form */}
         {workKey && (
           <div className="mt-2">
             <input
@@ -241,12 +263,52 @@ export default function SearchBook() {
               className="w-full p-1 rounded-md border text-sm mb-1 h-16"
             />
             <button
-              onClick={() => handleRating(book.work_key, ratings[workKey], reviews[workKey])}
+              onClick={() =>
+                handleRating(book.work_key, ratings[workKey], reviews[workKey])
+              }
               className="w-full bg-green-600 text-white text-sm py-1 rounded-md hover:bg-green-500 transition"
             >
               Submit Rating & Review
             </button>
           </div>
+        )}
+      </div>
+    );
+  };
+
+  //  Recommended Book Card
+  const renderRecommendBookCard = (book, index) => {
+    const workKey = normalizeWorkKey(book.work_key);
+    const key = workKey ? `${workKey}-${index}` : `recommend-${index}`;
+
+    return (
+      <div
+        key={key}
+        className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
+      >
+        <img
+          src={book.coverImage || getImageUrl(book.cover_i)}
+          alt={book.title || "Book cover"}
+          className="w-full h-48 object-cover rounded-md mb-2"
+        />
+        <h3 className="text-lg font-semibold text-gray-800">
+          {book.title || "Untitled"}
+        </h3>
+        <p className="text-gray-600 text-sm">
+          Author:{" "}
+          {book.author_name
+            ? book.author_name.join(", ")
+            : book.authors?.join(", ") || "Unknown"}
+        </p>
+        <p className="text-gray-700 text-xs">
+          📅 Year: {book.first_publish_year || "N/A"}
+        </p>
+
+        {/* Show reason */}
+        {book.reason && (
+          <p className="text-cyan-700 text-sm mt-2 italic">
+            📌 Recommended because: {book?.reason=="Most liked in database"?"Most Liked Book in Shelfmate!!!": book.reason}
+          </p>
         )}
       </div>
     );
@@ -260,9 +322,12 @@ export default function SearchBook() {
         backgroundAttachment: "fixed",
       }}
     >
-      <div className="max-w-4xl mx-auto bg-white/30 backdrop-blur-0 p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-white mb-4 text-center">🔍 Search Books</h1>
+      <div className="max-w-4xl mx-auto bg-white/30 backdrop-blur-sm p-6 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold text-white mb-4 text-center">
+          🔍 Search Books
+        </h1>
 
+        {/* Search Bar */}
         <div className="flex items-center gap-4 mb-6">
           <input
             value={searchTerm}
@@ -278,13 +343,16 @@ export default function SearchBook() {
           </button>
         </div>
 
+        {/* Search Results */}
         {loading ? (
           <div className="text-center text-white">Loading...</div>
         ) : currentBooks.length > 0 ? (
           <div>
-            <h2 className="text-2xl font-semibold text-white mb-4">Search Results</h2>
+            <h2 className="text-2xl font-semibold text-white mb-4">
+              Search Results
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {currentBooks.map((book) => renderBookCard(book))}
+              {currentBooks.map((book, i) => renderSearchBookCard(book, i))}
             </div>
             {results.length > booksPerPage && (
               <div className="flex justify-between mt-6">
@@ -308,6 +376,22 @@ export default function SearchBook() {
         ) : (
           <p className="text-white text-center">No books found.</p>
         )}
+
+        {/* Recommended Books */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold text-white mb-4">
+            Recommended Books
+          </h2>
+          {recommendLoader ? (
+            <div className="text-center text-white">Loading...</div>
+          ) : recommendBooks.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {recommendBooks.map((book, i) => renderRecommendBookCard(book, i))}
+            </div>
+          ) : (
+            <p className="text-white text-center">No recommendations found.</p>
+          )}
+        </div>
 
         <ToastContainer position="top-center" theme="dark" />
       </div>
