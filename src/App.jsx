@@ -11,9 +11,8 @@ function App(){
     <div className="App">
       <Routes>
         <Route path="/search" element={<SearchBooks/>}/>
-        <Route path="/" element={<Navigate to="/send-otp" />} />
         <Route path="/login" element={<SignIn/>} />
-        <Route path="/send-otp" element={<SendOtp/>}/>
+        <Route path="/" element={<SendOtp/>}/>
         <Route path="/register" element={<VerifyOtp/>} />
         <Route
           path="/home"
