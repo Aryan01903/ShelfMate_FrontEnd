@@ -189,7 +189,6 @@ export default function SearchBook() {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  // Search Results Card (with rating form)
   const renderSearchBookCard = (book, index) => {
     const workKey = normalizeWorkKey(book.work_key);
     const key = workKey ? `${workKey}-${index}` : `search-${index}`;
@@ -276,7 +275,6 @@ export default function SearchBook() {
     );
   };
 
-  //  Recommended Book Card
   const renderRecommendBookCard = (book, index) => {
     const workKey = normalizeWorkKey(book.work_key);
     const key = workKey ? `${workKey}-${index}` : `recommend-${index}`;
@@ -287,27 +285,25 @@ export default function SearchBook() {
         className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
       >
         <img
-          src={book.coverImage || getImageUrl(book.cover_i)}
+          src={book.cover_image || "https://via.placeholder.com/150"}
           alt={book.title || "Book cover"}
           className="w-full h-48 object-cover rounded-md mb-2"
         />
+
         <h3 className="text-lg font-semibold text-gray-800">
           {book.title || "Untitled"}
         </h3>
+
         <p className="text-gray-600 text-sm">
-          Author:{" "}
-          {book.author_name
-            ? book.author_name.join(", ")
-            : book.authors?.join(", ") || "Unknown"}
-        </p>
-        <p className="text-gray-700 text-xs">
-          📅 Year: {book.first_publish_year || "N/A"}
+          Author: {book.author || "Unknown"}
         </p>
 
-        {/* Show reason */}
         {book.reason && (
           <p className="text-cyan-700 text-sm mt-2 italic">
-            📌 Recommended because: {book?.reason=="Most liked in database"?"Most Liked Book in Shelfmate!!!": book.reason}
+            📌 Recommended because:{" "}
+            {book.reason === "Most liked in database"
+              ? "Most Liked Book in Shelfmate!!!"
+              : book.reason}
           </p>
         )}
       </div>
