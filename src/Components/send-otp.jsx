@@ -1,8 +1,8 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
+import axiosInstance from "./api/axios";
 export default function SendOtp() {
   const [email, setEmail] = useState("");
   const [loader, setLoader] = useState(false);
@@ -11,7 +11,7 @@ export default function SendOtp() {
   const handleSendOtp = async () => {
     setLoader(true);
     try {
-      const res = await axios.post("https://shelfmate.kindpond-d4d80e1b.centralindia.azurecontainerapps.io/shelfmate/api/auth/send-otp", {
+      const res = await axiosInstance.post("/auth/send-otp", {
         email,
       });
 
