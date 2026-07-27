@@ -1,7 +1,7 @@
 import axios  from 'axios'
 
 const axiosInstance=axios.create({
-    baseURL : "https://shelfmateapi.onrender.com/shelfmate/api"
+    baseURL : "https://shelfmate.kindpond-d4d80e1b.centralindia.azurecontainerapps.io/shelfmate/api"
 })
 
 axiosInstance.interceptors.request.use((config)=>{
