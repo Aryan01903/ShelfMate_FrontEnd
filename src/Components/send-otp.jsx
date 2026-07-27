@@ -11,7 +11,7 @@ export default function SendOtp() {
   const handleSendOtp = async () => {
     setLoader(true);
     try {
-      const res = await axios.post("https://shelfmateapi.onrender.com/shelfmate/api/auth/send-otp", {
+      const res = await axios.post("https://shelfmate.kindpond-d4d80e1b.centralindia.azurecontainerapps.io/shelfmate/api/auth/send-otp", {
         email,
       });
 
