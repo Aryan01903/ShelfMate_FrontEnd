@@ -18,27 +18,18 @@ export default function Home() {
         const token = localStorage.getItem("token");
         const res = await axios.get("/books/search", {
           params: { query: "fantasy" },
-          headers: {
-            "x-access-token": token || "",
-          },
+          headers: { "x-access-token": token || "" },
         });
-
-        console.log("Trending Books Response:", res.data);
         const books = res.data.books || res.data.results || res.data || [];
         setTrendingBooks(books);
         setCurrentPage(1);
-        setLoading(false);
       } catch (error) {
-        console.error("Trending Books Error:", {
-          message: error.message,
-          response: error.response?.data,
-          status: error.response?.status,
-        });
+        console.error("Trending Books Error:", error);
         toast.error("Failed to fetch trending books.");
+      } finally {
         setLoading(false);
       }
     };
-
     fetchTrendingBooks();
   }, []);
 
@@ -47,108 +38,118 @@ export default function Home() {
   const currentBooks = trendingBooks.slice(indexOfFirstBook, indexOfLastBook);
 
   const nextPage = () => {
-    if (indexOfLastBook < trendingBooks.length) {
-      setCurrentPage((prev) => prev + 1);
-    }
+    if (indexOfLastBook < trendingBooks.length) setCurrentPage((prev) => prev + 1);
   };
-
   const prevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage((prev) => prev - 1);
-    }
+    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
 
-  const getImageUrl = (cover_i) => {
-    return cover_i
+  const getImageUrl = (cover_i) =>
+    cover_i
       ? `https://covers.openlibrary.org/b/id/${cover_i}-L.jpg`
-      : "https://via.placeholder.com/150";
-  };
+      : "https://placehold.co/150x220?text=No+Cover";
 
-  const handleSearchRedirect = () => {
-    navigate("/search");
-  };
+  const PageButton = ({ children, ...props }) => (
+    <button
+      {...props}
+      className="px-4 py-2 bg-[#4A2E15] text-[#F5E9D3] text-sm font-medium rounded-md hover:bg-[#6F4520] disabled:bg-[#C9BBA0] disabled:text-[#8A7B5F] transition"
+    >
+      {children}
+    </button>
+  );
 
   return (
-    <div
-      className="min-h-screen bg-cover bg-center p-4"
-      style={{
-        backgroundImage: "url('/assets/backgroundHome.webp')",
-        backgroundAttachment: "fixed",
-        backgroundColor: "#f0f0f0",
-      }}
-    >
-      <div className="max-w-5xl mx-auto bg-white/30 backdrop-blur-0 p-6 rounded-lg shadow-lg">
-        <h1 className="text-4xl font-bold text-white mb-6 text-center">
-          📚 Welcome to ShelfMate
-        </h1>
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={handleSearchRedirect}
-            className="px-6 py-3 bg-cyan-600 text-white text-lg font-semibold rounded-md hover:bg-cyan-500 transition"
+    <div className="min-h-screen bg-[#F3E9D2]">
+      {/* Hero */}
+      <div
+        className="relative bg-cover bg-center"
+        style={{ backgroundImage: "url('/assets/backgroundHome.webp')" }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-[#2A1B0F]/70 via-[#2A1B0F]/50 to-[#F3E9D2]" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-20 sm:py-28 text-center">
+          <p className="text-[#E8CE8A] text-xs sm:text-sm tracking-[0.3em] uppercase mb-3">
+            Est. in your bookshelf
+          </p>
+          <h1
+            className="text-4xl sm:text-6xl font-bold text-[#FBF6EC] mb-4"
+            style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            Search Books 🔍
+            Welcome to ShelfMate
+          </h1>
+          <p className="text-[#EAE0C8] text-sm sm:text-base max-w-xl mx-auto mb-8">
+            Your personal library — search, rate, and discover books curated just for you.
+          </p>
+          <button
+            onClick={() => navigate("/search")}
+            className="px-8 py-3 bg-[#7A2E2E] text-[#F5E9D3] text-base font-semibold rounded-md hover:bg-[#621F1F] transition shadow-lg"
+          >
+            Browse the shelves
           </button>
         </div>
+      </div>
 
-        <h2 className="text-2xl font-semibold text-white mb-4 text-center">
-          Trending Books
-        </h2>
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="h-px flex-1 bg-[#D9C9A3]" />
+          <h2
+            className="text-xl sm:text-2xl font-semibold text-[#3B2A1A] tracking-wide"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            New arrivals
+          </h2>
+          <div className="h-px flex-1 bg-[#D9C9A3]" />
+        </div>
 
         {loading ? (
-          <div className="text-center text-white text-lg">Loading...</div>
+          <div className="text-center text-[#6B5B3E] py-8">Restocking the shelves...</div>
         ) : currentBooks.length > 0 ? (
           <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {currentBooks.map((book, index) => (
                 <div
                   key={book.key || index}
-                  className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
+                  className="bg-[#FBF6EC] border border-[#D9C9A3] rounded-lg shadow-md hover:shadow-xl transition p-3"
                 >
                   <img
                     src={getImageUrl(book.cover_i)}
                     alt={book.title || "Book cover"}
-                    className="w-full h-48 object-cover rounded-md mb-2"
+                    className="w-full h-40 sm:h-48 object-cover rounded-md mb-2 border border-[#D9C9A3]"
                   />
-                  <h3 className="text-lg font-semibold text-gray-800 truncate">
+                  <h3
+                    className="text-sm sm:text-base font-semibold text-[#3B2A1A] truncate"
+                    style={{ fontFamily: "'Playfair Display', serif" }}
+                  >
                     {book.title || "Untitled"}
                   </h3>
-                  <p className="text-gray-600 text-sm truncate">
-                    Author: {book.author_name ? book.author_name.join(", ") : "Unknown"}
+                  <p className="text-[#6B5B3E] text-xs italic truncate">
+                    {book.author_name ? book.author_name.join(", ") : "Unknown"}
                   </p>
-                  <p className="text-gray-700 text-xs">
-                    📅 Year: {book.first_publish_year || "N/A"}
-                  </p>
-                  <p className="text-yellow-600 text-sm mt-1">
-                    ⭐ Rating: {book.rating || "Not rated"}
+                  <p className="text-[#8A7B5F] text-xs mt-1">
+                    {book.first_publish_year || "N/A"}
                   </p>
                 </div>
               ))}
             </div>
             {trendingBooks.length > booksPerPage && (
               <div className="flex justify-between mt-6">
-                <button
-                  onClick={prevPage}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-md disabled:bg-cyan-300"
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                <button
+                <PageButton onClick={prevPage} disabled={currentPage === 1}>
+                  ← Previous
+                </PageButton>
+                <PageButton
                   onClick={nextPage}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-md disabled:bg-cyan-300"
                   disabled={indexOfLastBook >= trendingBooks.length}
                 >
-                  Next
-                </button>
+                  Next →
+                </PageButton>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-white text-center">No trending books available.</p>
+          <p className="text-[#6B5B3E] text-center py-4">No new arrivals right now.</p>
         )}
-
-        <ToastContainer position="top-center" theme="dark" />
       </div>
+
+      <ToastContainer position="top-center" theme="dark" />
     </div>
   );
 }

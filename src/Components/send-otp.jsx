@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import axiosInstance from "./api/axios";
+
 export default function SendOtp() {
   const [email, setEmail] = useState("");
   const [loader, setLoader] = useState(false);
-  
-  const navigate=useNavigate();
+
+  const navigate = useNavigate();
   const handleSendOtp = async () => {
     setLoader(true);
     try {
@@ -17,13 +18,15 @@ export default function SendOtp() {
 
       console.log("Response:", res.data);
       toast.success("OTP sent successfully!");
-      navigate("/register",{state : {
-        email,
-        name :"",
-        userId : "",
-        password : "",
-        otp : ""
-      }});
+      navigate("/register", {
+        state: {
+          email,
+          name: "",
+          userId: "",
+          password: "",
+          otp: "",
+        },
+      });
       setLoader(false);
     } catch (err) {
       console.error("Send OTP error:", err.response?.data || err.message);
@@ -33,25 +36,48 @@ export default function SendOtp() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-tr from-[#0f2027] via-[#203a43] to-[#2c5364] text-white font-sans px-4">
-      <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-3xl font-semibold text-center mb-6 tracking-wide">🚀 Email Authentication</h1>
-        <input
-        type="email"
-        value={email}
-        placeholder="enter your email"
-        onChange={(e) => setEmail(e.target.value)} className="w-full px-4 py-2 mb-4 rouded-lg bg-white/20 rounded-3xl placeholder-gray-300 focus-outline-none focus:ring-2 focus:ring-cyan-400 h-14"/>
-        <button
-          onClick={handleSendOtp}
-          disabled={loader} 
-          className={`w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium ${loader ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {loader ? "Please wait..." : "Send OTP"}
-        </button>
-        <p className="mt-4 text-center text-sm text-gray-300">
-        Already have an account?{" "} <Link to="/login" className="text-cyan-500 hover:underline">Login</Link>
-        </p>
-        <ToastContainer position="top-center" theme="dark"/>
+    <div className="flex items-center justify-center min-h-screen bg-[#F3E9D2] px-4">
+      <div className="bg-[#FBF6EC] border border-[#D9C9A3] p-8 sm:p-10 rounded-lg shadow-xl w-full max-w-md relative overflow-hidden">
+        {/* Wood spine accent */}
+        <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#8B5E34] via-[#6F4520] to-[#4A2E15]" />
+
+        <div className="pl-2">
+          <p className="text-[#9C7B4A] text-xs tracking-[0.3em] uppercase text-center mb-2">
+            New member registration
+          </p>
+          <h1
+            className="text-2xl sm:text-3xl font-bold text-[#3B2A1A] text-center mb-6"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Join the library
+          </h1>
+
+          <input
+            type="email"
+            value={email}
+            placeholder="Enter your email"
+            onChange={(e) => setEmail(e.target.value)}
+            className="w-full px-4 py-3 mb-4 rounded-md border border-[#D9C9A3] bg-white text-[#3B2A1A] placeholder-[#9C8B6A] focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
+          />
+
+          <button
+            onClick={handleSendOtp}
+            disabled={loader}
+            className={`w-full py-3 px-4 rounded-md bg-[#7A2E2E] text-[#F5E9D3] font-semibold hover:bg-[#621F1F] transition-all duration-300 ${
+              loader ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {loader ? "Sending..." : "Send OTP"}
+          </button>
+
+          <p className="mt-5 text-center text-sm text-[#6B5B3E]">
+            Already a member?{" "}
+            <Link to="/login" className="text-[#7A2E2E] font-medium hover:underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+        <ToastContainer position="top-center" theme="dark" />
       </div>
     </div>
   );

@@ -2,6 +2,34 @@ import { useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axiosInstance from "./api/axios";
+import { renderRecommendBookCard } from "./RecommendBook";
+
+export const normalizeWorkKey = (workKey) => {
+  if (!workKey) return null;
+  let normalized = workKey.trim();
+  if (normalized.startsWith("/works/")) {
+    normalized = normalized.replace(/^\/works\//, "");
+  }
+  normalized = normalized.toUpperCase();
+  if (!/^OL\d+W$/.test(normalized)) {
+    console.warn(`Invalid work_key format: ${normalized}`);
+    return null;
+  }
+  return normalized;
+};
+
+const SectionDivider = ({ label }) => (
+  <div className="flex items-center gap-3 my-6">
+    <div className="h-px flex-1 bg-[#D9C9A3]" />
+    <span
+      className="text-[#7A5B33] text-xs sm:text-sm tracking-[0.2em] uppercase font-medium px-2"
+      style={{ fontFamily: "'Playfair Display', serif" }}
+    >
+      {label}
+    </span>
+    <div className="h-px flex-1 bg-[#D9C9A3]" />
+  </div>
+);
 
 export default function SearchBook() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -21,7 +49,6 @@ export default function SearchBook() {
         const res = await axiosInstance.get("/books/recommendBooks", {
           token,
         });
-        console.log("Recommended Books are :- ", res.data);
         const books = res.data.recommendations || [];
         setRecommendBooks(books);
       } catch (err) {
@@ -39,44 +66,23 @@ export default function SearchBook() {
   const getImageUrl = (cover_i) =>
     cover_i
       ? `https://covers.openlibrary.org/b/id/${cover_i}-L.jpg`
-      : "https://via.placeholder.com/150";
-
-  const normalizeWorkKey = (workKey) => {
-    if (!workKey) return null;
-    let normalized = workKey.trim();
-    if (normalized.startsWith("/works/")) {
-      normalized = normalized.replace(/^\/works\//, "");
-    }
-    normalized = normalized.toUpperCase();
-    if (!/^OL\d+W$/.test(normalized)) {
-      console.warn(`Invalid work_key format: ${normalized}`);
-      return null;
-    }
-    return normalized;
-  };
+      : "https://placehold.co/150x220?text=No+Cover";
 
   const fetchRatingsForBooks = async (bookList) => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("No token found, skipping ratings fetch.");
-      return {};
-    }
+    if (!token) return {};
 
     const workKeys = bookList
       .map((book) => normalizeWorkKey(book.work_key || book.key))
       .filter(Boolean);
 
-    if (!workKeys.length) {
-      console.warn("No valid work keys to fetch ratings.");
-      return {};
-    }
+    if (!workKeys.length) return {};
 
     try {
       const res = await axiosInstance.get("/books/rate", {
         params: { work_keys: workKeys.join(",") },
         headers: { "x-access-token": token },
       });
-
       return res.data.ratings || {};
     } catch (error) {
       console.error("Rating Fetch Error:", error);
@@ -137,12 +143,10 @@ export default function SearchBook() {
       toast.error("Invalid work_key format");
       return;
     }
-
     if (!rating || rating < 1 || rating > 5) {
       toast.error("Please enter a rating between 1 and 5");
       return;
     }
-
     const token = localStorage.getItem("token");
     if (!token) {
       toast.error("Please log in to rate books");
@@ -184,10 +188,18 @@ export default function SearchBook() {
   const nextPage = () => {
     if (indexOfLastBook < results.length) setCurrentPage((prev) => prev + 1);
   };
-
   const prevPage = () => {
     if (currentPage > 1) setCurrentPage((prev) => prev - 1);
   };
+
+  const PageButton = ({ children, ...props }) => (
+    <button
+      {...props}
+      className="px-4 py-2 bg-[#4A2E15] text-[#F5E9D3] text-sm font-medium rounded-md hover:bg-[#6F4520] disabled:bg-[#C9BBA0] disabled:text-[#8A7B5F] transition"
+    >
+      {children}
+    </button>
+  );
 
   const renderSearchBookCard = (book, index) => {
     const workKey = normalizeWorkKey(book.work_key);
@@ -196,51 +208,52 @@ export default function SearchBook() {
     return (
       <div
         key={key}
-        className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
+        className="relative bg-[#FBF6EC] border border-[#D9C9A3] rounded-lg shadow-md hover:shadow-xl transition p-4"
       >
         <img
           src={book.coverImage || getImageUrl(book.cover_i)}
           alt={book.title || "Book cover"}
-          className="w-full h-48 object-cover rounded-md mb-2"
+          className="w-full h-44 sm:h-52 object-cover rounded-md mb-3 border border-[#D9C9A3]"
         />
-        <h3 className="text-lg font-semibold text-gray-800">
+        <h3
+          className="text-base sm:text-lg font-semibold text-[#3B2A1A] leading-snug"
+          style={{ fontFamily: "'Playfair Display', serif" }}
+        >
           {book.title || "Untitled"}
         </h3>
-        <p className="text-gray-600 text-sm">
-          Author:{" "}
+        <p className="text-[#6B5B3E] text-sm italic mt-1">
           {book.author_name
             ? book.author_name.join(", ")
             : book.authors?.join(", ") || "Unknown"}
         </p>
-        <p className="text-gray-700 text-xs">
-          📅 Year: {book.first_publish_year || "N/A"}
+        <p className="text-[#8A7B5F] text-xs mt-1">
+          Published: {book.first_publish_year || "N/A"}
         </p>
-        <p className="text-yellow-600 text-sm mt-1">
-          ★ Rating:{" "}
-          {book.averageRating ? book.averageRating.toFixed(1) : "Not rated"}
+        <p className="text-[#B8860B] text-sm mt-1 font-medium">
+          ★ {book.averageRating ? book.averageRating.toFixed(1) : "Not rated"}
         </p>
 
-        {/* Reviews */}
-        <div className="mt-2">
-          <h4 className="text-sm font-semibold text-gray-800">Reviews</h4>
+        <div className="mt-3 border-t border-dashed border-[#D9C9A3] pt-2">
+          <h4 className="text-xs font-semibold text-[#5C4A2E] uppercase tracking-wide mb-1">
+            Reader notes
+          </h4>
           {book.ratings?.length > 0 ? (
-            <ul className="list-disc pl-5 text-gray-600 text-xs">
+            <ul className="space-y-1 text-[#6B5B3E] text-xs max-h-20 overflow-y-auto pr-1">
               {book.ratings
                 .filter((r) => r.review)
                 .map((r, i) => (
-                  <li key={i}>
-                    {r.review} (Rating: {r.rating})
+                  <li key={i} className="border-l-2 border-[#D9C9A3] pl-2">
+                    {r.review} <span className="text-[#B8860B]">({r.rating})</span>
                   </li>
                 ))}
             </ul>
           ) : (
-            <p className="text-gray-600 text-xs">No reviews yet.</p>
+            <p className="text-[#8A7B5F] text-xs">No reviews yet.</p>
           )}
         </div>
 
-        {/* Rating Form */}
         {workKey && (
-          <div className="mt-2">
+          <div className="mt-3 space-y-2">
             <input
               type="number"
               min="1"
@@ -251,7 +264,7 @@ export default function SearchBook() {
                 setRatings((prev) => ({ ...prev, [workKey]: e.target.value }))
               }
               placeholder="Rate 1-5"
-              className="w-full p-1 rounded-md border text-sm mb-1"
+              className="w-full p-2 rounded-md border border-[#D9C9A3] bg-white text-sm text-[#3B2A1A] focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
             />
             <textarea
               value={reviews[workKey] || ""}
@@ -259,15 +272,15 @@ export default function SearchBook() {
                 setReviews((prev) => ({ ...prev, [workKey]: e.target.value }))
               }
               placeholder="Write a review..."
-              className="w-full p-1 rounded-md border text-sm mb-1 h-16"
+              className="w-full p-2 rounded-md border border-[#D9C9A3] bg-white text-sm text-[#3B2A1A] h-16 focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
             />
             <button
               onClick={() =>
                 handleRating(book.work_key, ratings[workKey], reviews[workKey])
               }
-              className="w-full bg-green-600 text-white text-sm py-1 rounded-md hover:bg-green-500 transition"
+              className="w-full bg-[#4A6B3E] text-white text-sm py-2 rounded-md hover:bg-[#3A5530] transition font-medium"
             >
-              Submit Rating & Review
+              Submit rating and review
             </button>
           </div>
         )}
@@ -275,117 +288,76 @@ export default function SearchBook() {
     );
   };
 
-  const renderRecommendBookCard = (book, index) => {
-    const workKey = normalizeWorkKey(book.work_key);
-    const key = workKey ? `${workKey}-${index}` : `recommend-${index}`;
-
-    return (
-      <div
-        key={key}
-        className="bg-white/90 p-4 rounded-xl shadow-lg hover:shadow-2xl transition cursor-pointer"
-      >
-        <img
-          src={book.cover_image || "https://via.placeholder.com/150"}
-          alt={book.title || "Book cover"}
-          className="w-full h-48 object-cover rounded-md mb-2"
-        />
-
-        <h3 className="text-lg font-semibold text-gray-800">
-          {book.title || "Untitled"}
-        </h3>
-
-        <p className="text-gray-600 text-sm">
-          Author: {book.author || "Unknown"}
-        </p>
-
-        {book.reason && (
-          <p className="text-cyan-700 text-sm mt-2 italic">
-            📌 Recommended because:{" "}
-            {book.reason === "Most liked in database"
-              ? "Most Liked Book in Shelfmate!!!"
-              : book.reason}
-          </p>
-        )}
-      </div>
-    );
-  };
-
   return (
-    <div
-      className="min-h-screen bg-cover bg-center p-4"
-      style={{
-        backgroundImage: "url('/assets/backgroundHome.webp')",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      <div className="max-w-4xl mx-auto bg-white/30 backdrop-blur-sm p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold text-white mb-4 text-center">
-          🔍 Search Books
-        </h1>
+    <div className="min-h-screen bg-[#F3E9D2] p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-8">
+          <h1
+            className="text-3xl sm:text-4xl font-bold text-[#3B2A1A] mb-2"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Search the stacks
+          </h1>
+          <p className="text-[#6B5B3E] text-sm">
+            Find your next read from thousands of titles
+          </p>
+        </div>
 
-        {/* Search Bar */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-8 max-w-2xl mx-auto">
           <input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Enter book title or author..."
-            className="flex-1 px-4 py-2 rounded-md text-black placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Search by title or author..."
+            className="flex-1 px-4 py-3 rounded-md border border-[#D9C9A3] bg-[#FBF6EC] text-[#3B2A1A] placeholder-[#9C8B6A] focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
           />
           <button
+            type="submit"
             onClick={handleSearch}
-            className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-500 transition"
+            className="px-6 py-3 bg-[#7A2E2E] text-[#F5E9D3] font-medium rounded-md hover:bg-[#621F1F] transition"
           >
             Search
           </button>
         </div>
 
-        {/* Search Results */}
         {loading ? (
-          <div className="text-center text-white">Loading...</div>
+          <div className="text-center text-[#6B5B3E] py-8">Searching the archives...</div>
         ) : currentBooks.length > 0 ? (
           <div>
-            <h2 className="text-2xl font-semibold text-white mb-4">
-              Search Results
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <SectionDivider label="Search results" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {currentBooks.map((book, i) => renderSearchBookCard(book, i))}
             </div>
             {results.length > booksPerPage && (
               <div className="flex justify-between mt-6">
-                <button
-                  onClick={prevPage}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-md disabled:bg-gray-300"
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </button>
-                <button
+                <PageButton onClick={prevPage} disabled={currentPage === 1}>
+                  ← Previous
+                </PageButton>
+                <PageButton
                   onClick={nextPage}
-                  className="px-4 py-2 bg-cyan-600 text-white rounded-md disabled:bg-gray-300"
                   disabled={indexOfLastBook >= results.length}
                 >
-                  Next
-                </button>
+                  Next →
+                </PageButton>
               </div>
             )}
           </div>
         ) : (
-          <p className="text-white text-center">No books found.</p>
+          <p className="text-[#6B5B3E] text-center py-4">No books found yet — try a search above.</p>
         )}
 
-        {/* Recommended Books */}
-        <div className="mt-8">
-          <h2 className="text-2xl font-semibold text-white mb-4">
-            Recommended Books
-          </h2>
+        <div className="mt-10">
+          <SectionDivider label="Recommended for you" />
           {recommendLoader ? (
-            <div className="text-center text-white">Loading...</div>
+            <div className="text-center text-[#6B5B3E] py-8">Consulting the librarian...</div>
           ) : recommendBooks.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {recommendBooks.map((book, i) => renderRecommendBookCard(book, i))}
             </div>
           ) : (
-            <p className="text-white text-center">No recommendations found.</p>
+            <p className="text-[#6B5B3E] text-center py-4">
+              Rate a few books to get personalized recommendations.
+            </p>
           )}
         </div>
 

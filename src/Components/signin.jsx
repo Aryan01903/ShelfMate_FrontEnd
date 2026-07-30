@@ -17,9 +17,6 @@ export default function SignIn() {
         password,
       });
 
-      console.log("API Response:", res);
-      console.log("res.data:", res.data);
-
       if (!res.data?.accessToken) {
         toast.error("No token received. Something is wrong.");
         return;
@@ -28,7 +25,7 @@ export default function SignIn() {
       localStorage.setItem("token", res.data.accessToken);
       toast.success("Login successful");
       navigate("/home");
-      setLoader(false);      
+      setLoader(false);
     } catch (err) {
       console.error("error:", err);
       console.error("error response:", err.response?.data);
@@ -38,27 +35,43 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-[#0f2027] via-[#203a43] to-[#2c5364] text-white font-sans px-4">
-      <div className="bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-2xl w-full max-w-md">
-        <h1 className="text-3xl font-semibold text-center mb-6 tracking-wide">🔐 Welcome</h1>
-        <input
-          placeholder="Enter Email or User ID"
-          onChange={(e) => setIdentifier(e.target.value)}
-          className="w-full px-4 py-2 mb-4 bg-white/20 rounded-3xl placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-10"
-        />
-        <input
-          type="password"
-          placeholder="Enter Password"
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-4 py-2 mb-4 bg-white/20 rounded-3xl placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-cyan-400 h-10"
-        />
-        <button
-          onClick={handleSignIn}
-          disabled={loader} 
-          className={`w-full py-2 px-4 rounded-full bg-cyan-500 hover:bg-cyan-400 transition-all duration-300 font-medium ${loader ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {loader ? "Please wait..." : "Login"}
-        </button>
+    <div className="min-h-screen flex items-center justify-center bg-[#F3E9D2] px-4">
+      <div className="bg-[#FBF6EC] border border-[#D9C9A3] p-8 sm:p-10 rounded-lg shadow-xl w-full max-w-md relative overflow-hidden">
+        <div className="absolute left-0 top-0 h-full w-2 bg-gradient-to-b from-[#8B5E34] via-[#6F4520] to-[#4A2E15]" />
+
+        <div className="pl-2">
+          <p className="text-[#9C7B4A] text-xs tracking-[0.3em] uppercase text-center mb-2">
+            Reading room access
+          </p>
+          <h1
+            className="text-2xl sm:text-3xl font-bold text-[#3B2A1A] text-center mb-6"
+            style={{ fontFamily: "'Playfair Display', serif" }}
+          >
+            Welcome back
+          </h1>
+
+          <input
+            placeholder="Email or user ID"
+            onChange={(e) => setIdentifier(e.target.value)}
+            className="w-full px-4 py-3 mb-4 rounded-md border border-[#D9C9A3] bg-white text-[#3B2A1A] placeholder-[#9C8B6A] focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full px-4 py-3 mb-4 rounded-md border border-[#D9C9A3] bg-white text-[#3B2A1A] placeholder-[#9C8B6A] focus:outline-none focus:ring-2 focus:ring-[#8B5E34]"
+          />
+
+          <button
+            onClick={handleSignIn}
+            disabled={loader}
+            className={`w-full py-3 px-4 rounded-md bg-[#7A2E2E] text-[#F5E9D3] font-semibold hover:bg-[#621F1F] transition-all duration-300 ${
+              loader ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {loader ? "Signing in..." : "Sign in"}
+          </button>
+        </div>
         <ToastContainer position="top-center" theme="dark" />
       </div>
     </div>
